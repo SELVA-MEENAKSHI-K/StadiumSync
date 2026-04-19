@@ -1,71 +1,65 @@
 const express = require("express");
 const cors = require("cors");
+const fetch = require("node-fetch");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ================= DATABASE (TEMP)
+// USERS
 let users = [
-  { email: "attendee@stadium.com", password: "1234", role: "attendee" }
+  {
+    name: "Alex Johnson",
+    email: "attendee@stadium.com",
+    password: "1234",
+    role: "attendee"
+  }
 ];
 
 let sosLogs = [];
 
-// ================= LOGIN API
+// LOGIN
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
   const user = users.find(u => u.email === email && u.password === password);
 
   if (user) {
-    res.json({ success: true, user });
+    res.json({
+      success: true,
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } else {
-    res.json({ success: false, message: "Invalid credentials ❌" });
+    res.json({ success: false });
   }
 });
 
-// ================= DYNAMIC CROWD DATA
+// CROWD
 app.get("/api/crowd", (req, res) => {
-  const data = [
+  res.json([
     { zone: "Gate A", waitTime: Math.floor(Math.random()*20)+5 },
     { zone: "Gate B", waitTime: Math.floor(Math.random()*10)+2 },
     { zone: "Food Stand 7", waitTime: Math.floor(Math.random()*15)+3 },
     { zone: "Drinks Stand 2", waitTime: Math.floor(Math.random()*25)+10 }
-  ];
-
-  res.json(data);
+  ]);
 });
 
-// ================= AI CHAT (SMART)
+// AI
 app.post("/api/ai", async (req, res) => {
   try {
     const { message } = req.body;
-
-    const context = `
-You are StadiumSync AI.
-Use this real-time data:
-- Gate A wait: 18 min
-- Gate B wait: 5 min
-- Food Stand 7: 8 min
-- Drinks Stand 2: 22 min
-
-Give smart suggestions.
-`;
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: context + "\nUser: " + message }]
-            }
-          ]
+          contents: [{ parts: [{ text: message }] }]
         })
       }
     );
@@ -76,30 +70,27 @@ Give smart suggestions.
       reply: data.candidates?.[0]?.content?.parts?.[0]?.text || "No response"
     });
 
-  } catch (error) {
+  } catch (err) {
     res.json({ reply: "AI error ❌" });
   }
 });
 
-// ================= SOS SYSTEM
+// SOS
 app.post("/api/sos", (req, res) => {
-  const { user, location, type } = req.body;
-
   const log = {
-    user,
-    location,
-    type,
+    user: req.body.user,
+    location: req.body.location,
+    type: req.body.type,
     time: new Date()
   };
 
   sosLogs.push(log);
+  console.log("🚨 SOS:", log);
 
-  console.log("🚨 SOS ALERT:", log);
-
-  res.json({ message: "Emergency sent to control room 🚨" });
+  res.json({ message: "SOS sent 🚨" });
 });
 
-// ================= SERVER
+// SERVER
 app.listen(5000, () => {
   console.log("🔥 Server running on http://localhost:5000");
 });
