@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StadiumSync — Smart Stadium Experience</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #080c14;
+  --bg2: #0d1422;
+  --bg3: #111827;
+  --card: #141c2e;
+  --card2: #1a2540;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --accent: #00e5ff;
+  --accent2: #ff6b35;
+  --accent3: #7c3aed;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --text: #f0f4ff;
+  --text2: #8892a4;
+  --text3: #4a5568;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --glow: 0 0 20px rgba(0,229,255,0.15);
+  --glow2: 0 0 30px rgba(0,229,255,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(0,229,255,0.06),transparent);pointer-events:none;z-index:0}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--accent3);border-radius:2px}
+
+/* AUTH SCREEN */
+.auth-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.auth-box{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:40px;width:100%;max-width:420px;position:relative;overflow:hidden}
+.auth-box::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(0,229,255,0.08),transparent);border-radius:50%}
+.auth-logo{font-family:var(--font-display);font-size:38px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;text-shadow:var(--glow2)}
+.auth-sub{color:var(--text2);font-size:13px;margin-bottom:32px;letter-spacing:1px;text-transform:uppercase}
+.auth-tabs{display:flex;gap:4px;background:var(--bg2);border-radius:10px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .2s}
+.auth-tab.active{background:var(--card2);color:var(--accent)}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent)}
+.form-select{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;appearance:none}
+.btn-primary{width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.5px;margin-top:8px}
+.btn-primary:hover{background:#33ecff;box-shadow:var(--glow2)}
+.demo-accounts{margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.demo-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.demo-btns{display:flex;gap:8px;flex-wrap:wrap}
+.demo-btn{padding:6px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:11px;cursor:pointer;transition:all .2s}
+.demo-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* APP LAYOUT */
+.app{display:flex;height:100vh;overflow:hidden;position:relative;z-index:1}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .3s}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo-text{font-family:var(--font-display);font-size:28px;letter-spacing:2px;color:var(--accent);text-shadow:var(--glow)}
+.sidebar-logo-sub{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.sidebar-user{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.user-info{min-width:0}
+.user-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}
+.nav-section{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .2s;margin-bottom:2px;position:relative}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:rgba(0,229,255,0.1);color:var(--accent);border:1px solid rgba(0,229,255,0.15)}
+.nav-icon{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sidebar-bottom{padding:12px 8px;border-top:1px solid var(--border)}
+.logout-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;width:100%;background:none;border:none;font-family:var(--font);transition:all .2s}
+.logout-btn:hover{color:var(--red);background:rgba(239,68,68,0.08)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0;position:sticky;top:0;z-index:10}
+.page-title{font-family:var(--font-display);font-size:24px;letter-spacing:1px;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--red);font-weight:600;letter-spacing:.5px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.notif-btn{width:34px;height:34px;border-radius:8px;background:var(--card);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:15px;transition:all .2s}
+.notif-btn:hover{border-color:var(--accent)}
+.notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--accent2);border:1px solid var(--bg2)}
+.page-content{padding:24px;flex:1}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.card-title{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.card-title-left{display:flex;align-items:center;gap:8px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.stat-value{font-family:var(--font-display);font-size:32px;letter-spacing:1px;margin-bottom:4px}
+.stat-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.stat-change{font-size:11px;margin-top:6px}
+.stat-change.up{color:var(--green)}
+.stat-change.down{color:var(--red)}
+
+/* HEATMAP */
+.heatmap-container{position:relative;background:var(--bg3);border-radius:10px;overflow:hidden;aspect-ratio:16/9}
+.heatmap-grid{display:grid;width:100%;height:100%;position:absolute;inset:0}
+.heatmap-cell{transition:background .5s;cursor:pointer;position:relative}
+.heatmap-cell:hover::after{content:attr(data-info);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.85);color:#fff;padding:4px 8px;border-radius:4px;font-size:10px;white-space:nowrap;z-index:10;pointer-events:none}
+.stadium-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.stadium-shape{width:60%;height:55%;border:2px solid rgba(255,255,255,.2);border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center}
+.stadium-field{width:70%;height:55%;border:1.5px solid rgba(255,255,255,.15);border-radius:4px;background:rgba(16,185,129,.08)}
+.zone-label{position:absolute;font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.5px;font-weight:600}
+
+/* WAIT TIMES */
+.wait-list{display:flex;flex-direction:column;gap:10px}
+.wait-item{display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)}
+.wait-icon{font-size:20px;width:32px;text-align:center}
+.wait-info{flex:1}
+.wait-name{font-size:13px;font-weight:500;margin-bottom:3px}
+.wait-meta{font-size:11px;color:var(--text2)}
+.wait-bar-wrap{width:90px}
+.wait-bar{height:4px;background:var(--border2);border-radius:2px;margin-bottom:4px}
+.wait-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+.wait-time{font-size:12px;font-weight:600;text-align:right}
+
+/* NOTIFICATIONS */
+.notif-list{display:flex;flex-direction:column;gap:8px}
+.notif-item{display:flex;gap:12px;padding:12px 14px;background:var(--bg2);border-radius:10px;border-left:3px solid transparent;transition:all .2s;cursor:pointer}
+.notif-item:hover{background:var(--card2)}
+.notif-item.emergency{border-left-color:var(--red);background:rgba(239,68,68,.05)}
+.notif-item.alert{border-left-color:var(--yellow)}
+.notif-item.info{border-left-color:var(--accent)}
+.notif-item.success{border-left-color:var(--green)}
+.notif-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.notif-content{flex:1}
+.notif-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.notif-msg{font-size:12px;color:var(--text2);line-height:1.4}
+.notif-time{font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--font-mono)}
+
+/* ROUTE */
+.route-map{background:var(--bg3);border-radius:10px;padding:16px;position:relative;min-height:240px}
+.route-step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.route-step:last-child{border:none}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#000;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-info{flex:1}
+.step-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.step-meta{font-size:11px;color:var(--text2)}
+.step-time{font-size:12px;color:var(--accent);font-family:var(--font-mono)}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+.mb-20{margin-bottom:20px}
+.mb-16{margin-bottom:16px}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.3px}
+.badge-green{background:rgba(16,185,129,.15);color:var(--green)}
+.badge-yellow{background:rgba(245,158,11,.15);color:var(--yellow)}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red)}
+.badge-blue{background:rgba(0,229,255,.1);color:var(--accent)}
+.badge-purple{background:rgba(124,58,237,.15);color:#a78bfa}
+
+/* QR */
+.qr-container{display:flex;flex-direction:column;align-items:center;gap:16px}
+.qr-box{width:160px;height:160px;background:#fff;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center}
+.qr-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:1.5px;width:100%;height:100%}
+.qr-cell{border-radius:1px}
+.ticket-card{background:linear-gradient(135deg,var(--card2),var(--bg3));border:1px solid var(--border2);border-radius:16px;padding:20px;position:relative;overflow:hidden}
+.ticket-card::after{content:'';position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:var(--bg)}
+.ticket-card::before{content:'';position:absolute;left:-20px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:var(--bg)}
+.ticket-perf{width:calc(100% + 2px);height:1px;background:repeating-linear-gradient(90deg,var(--border2) 0,var(--border2) 6px,transparent 6px,transparent 12px);margin:16px -1px}
+.ticket-row{display:flex;justify-content:space-between;align-items:center}
+.ticket-field{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ticket-val{font-size:14px;font-weight:600}
+.ticket-val-big{font-family:var(--font-display);font-size:22px;letter-spacing:1px;color:var(--accent)}
+
+/* GROUP */
+.friend-list{display:flex;flex-direction:column;gap:10px}
+.friend-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)}
+.friend-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0}
+.friend-info{flex:1}
+.friend-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.friend-loc{font-size:11px;color:var(--text2)}
+.friend-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* SOS */
+.sos-panel{text-align:center;padding:20px}
+.sos-btn{width:130px;height:130px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#ef4444);border:4px solid rgba(239,68,68,.3);cursor:pointer;font-family:var(--font-display);font-size:36px;letter-spacing:2px;color:#fff;transition:all .3s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;margin:0 auto;box-shadow:0 0 0 0 rgba(239,68,68,.4)}
+.sos-btn:hover{transform:scale(1.05);box-shadow:0 0 0 12px rgba(239,68,68,.15)}
+.sos-btn.active{animation:sos-pulse 1s infinite;background:linear-gradient(135deg,#991b1b,#dc2626)}
+@keyframes sos-pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}70%{box-shadow:0 0 0 20px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.sos-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:4px}
+.sos-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.sos-option{padding:14px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;text-align:center;transition:all .2s}
+.sos-option:hover{border-color:var(--red);background:rgba(239,68,68,.05)}
+.sos-option-icon{font-size:22px;margin-bottom:6px}
+.sos-option-label{font-size:12px;font-weight:500}
+
+/* ADMIN DASHBOARD */
+.admin-chart{height:120px;position:relative;overflow:hidden}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:100%;padding-top:8px}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;transition:height .5s,background .3s;cursor:pointer;position:relative}
+.chart-bar:hover::after{content:attr(data-val);position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text2);white-space:nowrap}
+.admin-table{width:100%;border-collapse:collapse}
+.admin-table th{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.admin-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border)}
+.admin-table tr:last-child td{border:none}
+.admin-table tr:hover td{background:var(--bg2)}
+
+/* TOGGLE */
+.toggle{width:36px;height:20px;background:var(--bg3);border-radius:10px;cursor:pointer;position:relative;transition:background .2s;border:1px solid var(--border2)}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s}
+.toggle.on::after{transform:translateX(16px)}
+
+/* AI CHAT */
+.ai-chat{display:flex;flex-direction:column;height:100%}
+.ai-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.ai-msg{max-width:80%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5}
+.ai-msg.user{align-self:flex-end;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);color:var(--text)}
+.ai-msg.bot{align-self:flex-start;background:var(--card2);border:1px solid var(--border2);color:var(--text)}
+.ai-msg.bot .msg-label{font-size:10px;color:var(--accent);font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.ai-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+.ai-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none}
+.ai-input:focus{border-color:var(--accent)}
+.ai-send{padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.ai-send:hover{background:#33ecff}
+.ai-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px 0}
+.ai-chip{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .2s}
+.ai-chip:hover{border-color:var(--accent);color:var(--accent)}
+
+/* SCROLLABLE SECTION */
+.scroll-section{overflow-y:auto;max-height:400px}
+
+/* MATCH SCORE */
+.match-banner{background:linear-gradient(135deg,var(--card2),var(--bg3));border:1px solid var(--border2);border-radius:14px;padding:20px 24px;margin-bottom:20px}
+.match-teams{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.match-team{text-align:center;flex:1}
+.match-team-name{font-family:var(--font-display);font-size:20px;letter-spacing:1px;margin-bottom:4px}
+.match-score{font-family:var(--font-display);font-size:48px;letter-spacing:4px;color:var(--accent);text-shadow:var(--glow)}
+.match-info{text-align:center;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-top:8px}
+.match-divider{font-family:var(--font-display);font-size:22px;color:var(--text3);padding:0 8px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{width:60px}
+  .sidebar-logo-text,.sidebar-logo-sub,.user-info,.nav-item span:not(.nav-icon),.nav-badge,.sidebar-bottom .logout-label{display:none}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .grid-2,.grid-2-1{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .grid-3{grid-template-columns:1fr}
+  .page-content{padding:16px}
+  .match-score{font-size:36px}
+}
+
+/* UTILS */
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}.text-accent{color:var(--accent)}.text-green{color:var(--green)}.text-red{color:var(--red)}.text-yellow{color:var(--yellow)}.text-muted{color:var(--text2)}.text-sm{font-size:13px}.text-xs{font-size:11px}.font-mono{font-family:var(--font-mono)}.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.w-full{width:100%}.hidden{display:none}
+.btn-sm{padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;font-family:var(--font)}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{padding:8px 18px;border-radius:8px;background:var(--accent);color:#000;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:all .2s}
+.btn-accent:hover{background:#33ecff}
+.section-divider{height:1px;background:var(--border);margin:20px 0}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">STADIUMSYNC</div>
+    <div class="auth-sub">Smart Stadium Experience Platform</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</div>
+    </div>
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="loginEmail" placeholder="you@example.com" value="attendee@stadium.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="loginPass" placeholder="••••••••" value="password"/>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" placeholder="John Smith"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-select">
+          <option>Attendee</option>
+          <option>Staff</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="••••••••"/>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Create Account →</button>
+    </div>
+    <div class="demo-accounts">
+      <div class="demo-label">Quick Demo Access</div>
+      <div class="demo-btns">
+        <div class="demo-btn" onclick="quickLogin('attendee')">👤 Attendee</div>
+        <div class="demo-btn" onclick="quickLogin('staff')">🦺 Staff</div>
+        <div class="demo-btn" onclick="quickLogin('admin')">⚙️ Admin</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appShell" style="display:none">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">SS</div>
+      <div class="sidebar-logo-sub">StadiumSync</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div class="user-info">
+        <div class="user-name" id="userNameDisplay">Alex Johnson</div>
+        <div class="user-role" id="userRoleDisplay">Attendee</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+      <div class="nav-item" onclick="navigate('heatmap')"><span class="nav-icon">🌡️</span><span>Crowd Map</span></div>
+      <div class="nav-item" onclick="navigate('waittimes')"><span class="nav-icon">⏱️</span><span>Wait Times</span></div>
+      <div class="nav-item" onclick="navigate('navigation')"><span class="nav-icon">🧭</span><span>Navigation</span></div>
+      <div class="nav-section">Live</div>
+      <div class="nav-item" onclick="navigate('notifications')"><span class="nav-icon">🔔</span><span>Alerts</span><span class="nav-badge" id="notifBadge">3</span></div>
+      <div class="nav-item" onclick="navigate('ai')"><span class="nav-icon">🤖</span><span>AI Guide</span></div>
+      <div class="nav-section">My Ticket</div>
+      <div class="nav-item" onclick="navigate('ticket')"><span class="nav-icon">🎫</span><span>My Ticket</span></div>
+      <div class="nav-item" onclick="navigate('group')"><span class="nav-icon">👥</span><span>My Group</span></div>
+      <div class="nav-item" onclick="navigate('sos')"><span class="nav-icon">🆘</span><span>Emergency SOS</span></div>
+      <div class="nav-section admin-only" id="adminSection">Admin</div>
+      <div class="nav-item admin-only" id="adminNav" onclick="navigate('admin')"><span class="nav-icon">⚙️</span><span>Admin Panel</span></div>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="nav-icon">🚪</span><span class="logout-label">Sign Out</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-right">
+        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        <div class="notif-btn" onclick="navigate('notifications')">🔔<div class="notif-dot"></div></div>
+      </div>
+    </div>
+    <div class="page-content" id="pageContent"></div>
+  </div>
+</div>
+
+<script>
+// ==============================
+// SAMPLE DATA
+// ==============================
+const API_BASE = "https://stadiumsync-284841187356.asia-south1.run.app/api";
+async function fetchCrowdData() {
+  const res = await fetch(API_BASE + "/crowd");
+  const data = await res.json();
+  return data;
+}
+const USERS = {
+  attendee: { name: 'Alex Johnson', role: 'attendee', email: 'attendee@stadium.com', seat: 'Block C, Row 12, Seat 07', ticket: 'TKT-2024-88421' },
+  staff:    { name: 'Maria Chen', role: 'staff', email: 'staff@stadium.com', seat: 'Staff Zone', ticket: 'STF-2024-00314' },
+  admin:    { name: 'David Osei', role: 'admin', email: 'admin@stadium.com', seat: 'Admin Box', ticket: 'ADM-2024-00001' }
+};
+
+let currentUser = null;
+let currentPage = 'dashboard';
+
+const NOTIFICATIONS = [
+  { type: 'emergency', icon: '🚨', title: 'Crowd Alert — North Gate', msg: 'Unusually high density detected at Gate N. Use East Gate as alternative.', time: '2 min ago' },
+  { type: 'alert', icon: '⚠️', title: 'Gate B Closed', msg: 'Gate B is temporarily closed for maintenance. Please use Gate A or C.', time: '8 min ago' },
+  { type: 'info', icon: '⚽', title: 'GOAL! — Home Team', msg: 'Lions FC scores! 2–1 in the 67th minute. The crowd goes wild!', time: '12 min ago' },
+  { type: 'success', icon: '✅', title: 'Order Ready', msg: 'Your food order from Stand 7 is ready for pickup at counter 3.', time: '18 min ago' },
+  { type: 'alert', icon: '🌧️', title: 'Weather Update', msg: 'Light rain expected in 30 minutes. Covered areas available in sections D & E.', time: '22 min ago' },
+  { type: 'info', icon: '🅿️', title: 'Parking Update', msg: 'Lot P3 is now full. Overflow parking available at Lot P7 with shuttle.', time: '35 min ago' },
+];
+
+
+
+const GROUP_FRIENDS = [
+  { name: 'Sarah K.', loc: 'Block B, Row 8', status: 'online', color: '#7c3aed' },
+  { name: 'Mike T.', loc: 'Food Stand 3', status: 'online', color: '#059669' },
+  { name: 'Priya N.', loc: 'Restrooms — Block C', status: 'online', color: '#d97706' },
+  { name: 'James L.', loc: 'Merchandise Store', status: 'away', color: '#0891b2' },
+];
+
+const ADMIN_STATS = {
+  attendance: 42680,
+  capacity: 50000,
+  incidents: 3,
+  staff: 248
+};
+
+// Heatmap data [row][col] = density 0-100
+const HEATMAP = [
+  [20,25,30,35,30,25,20,15,10,12],
+  [35,55,70,80,75,60,45,30,20,22],
+  [40,65,85,95,90,75,60,40,25,28],
+  [35,60,80,90,88,72,55,38,22,25],
+  [25,45,65,78,75,58,45,28,18,20],
+  [15,30,50,65,62,48,35,22,14,15],
+  [10,20,35,45,42,32,25,15,10,10],
+  [8,15,25,30,28,22,18,10,8,8],
+];
+
+const ZONE_LABELS = ['North Stand','West Stand','East Stand','South Stand'];
+const ROUTE_STEPS = [
+  { title: 'Start: Your Seat — Block C, Row 12', meta: 'Current location', time: '' },
+  { title: 'Head towards concourse level', meta: 'Take stairway 3C or elevator', time: '1 min' },
+  { title: 'Turn left at main corridor', meta: 'Away from Gate A crowd', time: '2 min' },
+  { title: 'Pass through Block B zone', meta: 'Currently 22% density — clear route', time: '3 min' },
+  { title: 'Arrive: Food Stand 7 — Pizza', meta: 'Estimated wait: 8 minutes', time: '5 min' },
+];
+
+// ==============================
+// AUTH
+// ==============================
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = tab==='signup' ? 'block' : 'none';
+}
+function quickLogin(role) {
+  document.getElementById('loginEmail').value = USERS[role].email;
+  currentUser = USERS[role];
+  launchApp();
+}
+async function doLogin() {
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPass").value;
+
+  const res = await fetch("http://localhost:5000/api/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    currentUser = data.user;
+    launchApp();
+  } else {
+    alert("Login failed ❌");
+  }
+}
+
+function launchApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+  document.getElementById('userAvatar').textContent = currentUser.name[0];
+  document.getElementById('userNameDisplay').textContent = currentUser.name;
+  document.getElementById('userRoleDisplay').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+  const isAdmin = currentUser.role === 'admin';
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+  navigate('dashboard');
+  startLiveUpdates();
+}
+function doLogout() {
+  currentUser = null;
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+}
+
+// ==============================
+// NAVIGATION
+// ==============================
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const titles = { dashboard:'Dashboard', heatmap:'Crowd Density Map', waittimes:'Wait Times', navigation:'Smart Navigation', notifications:'Live Alerts', ai:'AI Guide', ticket:'My Ticket', group:'Group Coordination', sos:'Emergency SOS', admin:'Admin Dashboard' };
+  document.getElementById('pageTitle').textContent = titles[page] || page;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'"+page+"'")) el.classList.add('active');
+  });
+  const content = document.getElementById('pageContent');
+  switch(page) {
+    case 'dashboard': content.innerHTML = renderDashboard(); break;
+    case 'heatmap': content.innerHTML = renderHeatmap(); break;
+    case 'waittimes':
+  renderWaitTimes().then(html => {
+    content.innerHTML = html;
+  });
+  break;
+    case 'navigation': content.innerHTML = renderNavigation(); break;
+    case 'notifications': content.innerHTML = renderNotifications(); document.getElementById('notifBadge').textContent='0'; break;
+    case 'ai': content.innerHTML = renderAI(); setupAIChat(); break;
+    case 'ticket': content.innerHTML = renderTicket(); drawQR(); break;
+    case 'group': content.innerHTML = renderGroup(); break;
+    case 'sos': content.innerHTML = renderSOS(); break;
+    case 'admin': content.innerHTML = renderAdmin(); renderAdminChart(); break;
+    default: content.innerHTML = '<p style="color:var(--text2)">Page not found.</p>';
+  }
+}
+
+// ==============================
+// PAGES
+// ==============================
+function renderDashboard() {
+  const pct = Math.round(ADMIN_STATS.attendance / ADMIN_STATS.capacity * 100);
+  return `
+<div class="match-banner">
+  <div class="match-teams">
+    <div class="match-team">
+      <div class="match-team-name">🦁 Lions FC</div>
+      <div class="text-xs text-muted">HOME</div>
+    </div>
+    <div style="text-align:center">
+      <div class="match-score">2 — 1</div>
+      <div class="match-info">67' · Premier League · Matchday 24</div>
+    </div>
+    <div class="match-team">
+      <div class="match-team-name">Eagles SC 🦅</div>
+      <div class="text-xs text-muted">AWAY</div>
+    </div>
+  </div>
+</div>
+
+<div class="stat-grid mb-20">
+  <div class="stat-card">
+    <div class="stat-value text-accent">${ADMIN_STATS.attendance.toLocaleString()}</div>
+    <div class="stat-label">Attendance</div>
+    <div class="stat-change up">↑ ${pct}% capacity</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-yellow">12 min</div>
+    <div class="stat-label">Avg Wait Time</div>
+    <div class="stat-change down">↑ +3 min vs last hour</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-red">3</div>
+    <div class="stat-label">Active Alerts</div>
+    <div class="stat-change down">1 emergency</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-green">4</div>
+    <div class="stat-label">Clear Routes</div>
+    <div class="stat-change up">Updated live</div>
+  </div>
+</div>
+
+<div class="grid-2 mb-20">
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-left">🔔 Latest Alerts</div>
+      <button class="btn-sm" onclick="navigate('notifications')">View All</button>
+    </div>
+    <div class="notif-list">
+      ${NOTIFICATIONS.slice(0,3).map(n => `
+      <div class="notif-item ${n.type}">
+        <div class="notif-icon">${n.icon}</div>
+        <div class="notif-content">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-msg">${n.msg}</div>
+          <div class="notif-time">${n.time}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-left">⏱️ Top Wait Times</div>
+      <button class="btn-sm" onclick="navigate('waittimes')">View All</button>
+    </div>
+    <div class="wait-list">
+  <div class="wait-item">
+    <div class="wait-name">Live wait times → Click "View All"</div>
+  </div>
+</div>
+
+
+<div class="grid-3">
+  <div class="card" style="cursor:pointer" onclick="navigate('heatmap')">
+    <div class="card-title">🌡️ Crowd Map</div>
+    <div style="text-align:center;padding:16px 0">
+      <div style="font-size:40px">🏟️</div>
+      <div class="text-sm mt-8">North Gate: <span class="text-red">High</span></div>
+      <div class="text-sm">West Stand: <span class="text-yellow">Medium</span></div>
+      <div class="text-sm">South Zone: <span class="text-green">Clear</span></div>
+      <button class="btn-sm mt-12 w-full">Open Heatmap</button>
+    </div>
+  </div>
+  <div class="card" style="cursor:pointer" onclick="navigate('navigation')">
+    <div class="card-title">🧭 Best Route</div>
+    <div style="padding:8px 0">
+      ${ROUTE_STEPS.slice(0,3).map((s,i) => `
+      <div class="route-step">
+        <div class="step-num">${i+1}</div>
+        <div class="step-info">
+          <div class="step-title" style="font-size:12px">${s.title}</div>
+          <div class="step-meta">${s.meta}</div>
+        </div>
+      </div>`).join('')}
+      <button class="btn-sm w-full mt-8">Full Route →</button>
+    </div>
+  </div>
+  <div class="card" style="cursor:pointer" onclick="navigate('group')">
+    <div class="card-title">👥 My Group</div>
+    <div style="padding:4px 0">
+      ${GROUP_FRIENDS.slice(0,3).map(f => `
+      <div class="friend-item" style="margin-bottom:8px">
+        <div class="friend-avatar" style="background:${f.color}20;color:${f.color}">${f.name[0]}</div>
+        <div class="friend-info">
+          <div class="friend-name" style="font-size:12px">${f.name}</div>
+          <div class="friend-loc">${f.loc}</div>
+        </div>
+        <div class="friend-status" style="background:${f.status==='online'?'var(--green)':'var(--yellow)'}"></div>
+      </div>`).join('')}
+      <button class="btn-sm w-full mt-4">View Group →</button>
+    </div>
+  </div>
+</div>`;
+}
+
+function renderHeatmap() {
+  const rows = HEATMAP.length, cols = HEATMAP[0].length;
+  let cells = '';
+  for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
+    const v = HEATMAP[r][c];
+    const alpha = (v/100)*0.85+0.05;
+    const color = v>70 ? `rgba(239,68,68,${alpha})` : v>40 ? `rgba(245,158,11,${alpha})` : `rgba(16,185,129,${alpha})`;
+    cells += `<div class="heatmap-cell" style="background:${color}" data-info="${v}% density" title="${v}% crowd density"></div>`;
+  }
+  return `
+<div class="card mb-20">
+  <div class="card-title">
+    <div class="card-title-left">Stadium Crowd Density — Live</div>
+    <div class="flex gap-8 text-xs">
+      <span style="color:var(--green)">● Low</span>
+      <span style="color:var(--yellow)">● Medium</span>
+      <span style="color:var(--red)">● High</span>
+    </div>
+  </div>
+  <div class="heatmap-container" style="min-height:280px">
+    <div class="heatmap-grid" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr)">${cells}</div>
+    <div class="stadium-overlay">
+      <div class="stadium-shape">
+        <div class="stadium-field"></div>
+      </div>
+    </div>
+    <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.5px">NORTH</div>
+    <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.5px">SOUTH</div>
+    <div style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.5px">W</div>
+    <div style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.5px">E</div>
+  </div>
+</div>
+<div class="grid-3">
+  <div class="card">
+    <div class="card-title">🔴 Hotspots</div>
+    <div class="text-sm text-muted mb-16">Areas with >70% density</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="flex items-center justify-between"><span class="text-sm">Gate A Entrance</span><span class="badge badge-red">82%</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm">North Stand Row 1–5</span><span class="badge badge-red">90%</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm">Drinks Stand 2</span><span class="badge badge-red">95%</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🟡 Moderate</div>
+    <div class="text-sm text-muted mb-16">Areas with 40–70% density</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="flex items-center justify-between"><span class="text-sm">West Concourse</span><span class="badge badge-yellow">65%</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm">Food Stand 3</span><span class="badge badge-yellow">55%</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm">Restrooms Block A</span><span class="badge badge-yellow">45%</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🟢 Clear Zones</div>
+    <div class="text-sm text-muted mb-16">Areas with &lt;40% density</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="flex items-center justify-between"><span class="text-sm">Gate B — North</span><span class="badge badge-green">22%</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm">Gate C — VIP</span><span class="badge badge-green">10%</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm">Restrooms Block C</span><span class="badge badge-green">12%</span></div>
+    </div>
+  </div>
+</div>`;
+}
+
+async function renderWaitTimes() {
+  const data = await fetchCrowdData();
+
+  return `
+  <div class="card">
+    <div class="card-title">Live Wait Times</div>
+    ${data.map(w => `
+      <div class="wait-item">
+        <div class="wait-name">${w.zone}</div>
+        <div class="wait-time">${w.waitTime} min</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderNavigation() {
+  return `
+<div class="grid-2 mb-20">
+  <div class="card">
+    <div class="card-title">🎯 Set Destination</div>
+    <div class="form-group">
+      <label class="form-label">From</label>
+      <select class="form-select" style="border-radius:10px;color:var(--text)">
+        <option>My Current Seat — Block C, Row 12</option>
+        <option>Gate A</option><option>Gate B</option><option>Gate C</option>
+      </select>
+    </div>
+    <div class="form-group mt-12">
+      <label class="form-label">To</label>
+      <select class="form-select" style="border-radius:10px;color:var(--text)">
+        <option>Food Stand 7 — Pizza</option>
+        <option>Restrooms Block C</option>
+        <option>Merchandise Store</option>
+        <option>First Aid Station</option>
+        <option>Gate B — Exit</option>
+      </select>
+    </div>
+    <button class="btn-accent w-full mt-12" onclick="this.textContent='✓ Route Updated!'">Find Best Route →</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📍 Route Summary</div>
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+      <div class="flex items-center justify-between"><span class="text-muted">Distance</span><span class="font-mono">~320m</span></div>
+      <div class="flex items-center justify-between"><span class="text-muted">Walk time</span><span class="font-mono">5 min</span></div>
+      <div class="flex items-center justify-between"><span class="text-muted">Wait at dest.</span><span class="font-mono text-yellow">8 min</span></div>
+      <div class="flex items-center justify-between"><span class="text-muted">Total</span><span class="font-mono text-green">~13 min</span></div>
+      <div class="flex items-center justify-between"><span class="text-muted">Route density</span><span class="badge badge-green">22% — Clear</span></div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">🗺️ Step-by-Step Directions</div>
+  <div class="route-map">
+    ${ROUTE_STEPS.map((s,i) => `
+    <div class="route-step">
+      <div class="step-num">${i+1}</div>
+      <div class="step-info">
+        <div class="step-title">${s.title}</div>
+        <div class="step-meta">${s.meta}</div>
+      </div>
+      ${s.time ? `<div class="step-time">${s.time}</div>` : ''}
+    </div>`).join('')}
+  </div>
+</div>`;
+}
+
+function renderNotifications() {
+  return `
+<div class="card">
+  <div class="card-title">
+    <div class="card-title-left">All Alerts</div>
+    <div class="flex gap-8">
+      <span class="badge badge-red">1 Emergency</span>
+      <span class="badge badge-yellow">2 Alerts</span>
+    </div>
+  </div>
+  <div class="notif-list">
+    ${NOTIFICATIONS.map(n => `
+    <div class="notif-item ${n.type}">
+      <div class="notif-icon">${n.icon}</div>
+      <div class="notif-content">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-msg">${n.msg}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+    </div>`).join('')}
+  </div>
+</div>`;
+}
+
+function renderAI() {
+  return `
+<div class="card" style="height:calc(100vh - 200px);display:flex;flex-direction:column;padding:0;overflow:hidden">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-size:16px">🤖</div>
+    <div>
+      <div style="font-size:14px;font-weight:500">StadiumSync AI</div>
+      <div style="font-size:11px;color:var(--text2)">Powered by AI · Live</div>
+    </div>
+    <div class="live-badge" style="margin-left:auto">LIVE</div>
+  </div>
+  <div class="ai-messages" id="aiMessages">
+    <div class="ai-msg bot">
+      <div class="msg-label">StadiumSync AI</div>
+      Hey ${currentUser?.name.split(' ')[0] || 'there'}! 👋 I'm your AI guide for today's match. I can help with navigation, wait times, crowd alerts, food recommendations, and more. What do you need?
+    </div>
+  </div>
+  <div class="ai-chips" id="aiChips">
+    <span class="ai-chip" onclick="aiChip(this)">Least crowded food stand?</span>
+    <span class="ai-chip" onclick="aiChip(this)">Where are the restrooms?</span>
+    <span class="ai-chip" onclick="aiChip(this)">Best exit route now?</span>
+    <span class="ai-chip" onclick="aiChip(this)">Current score?</span>
+    <span class="ai-chip" onclick="aiChip(this)">Emergency help</span>
+  </div>
+  <div class="ai-input-row">
+    <input class="ai-input" id="aiInput" placeholder="Ask anything about the stadium..." onkeydown="if(event.key==='Enter')sendAI()"/>
+    <button class="ai-send" onclick="sendAI()">Send ↗</button>
+  </div>
+</div>`;
+}
+
+
+
+let aiHistory = [];
+
+async function sendAI() {
+  const input = document.getElementById('aiInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  const msgs = document.getElementById('aiMessages');
+
+  // user message
+  msgs.innerHTML += `<div class="ai-msg user">${text}</div>`;
+
+  // loading
+  msgs.innerHTML += `
+    <div class="ai-msg bot" id="aiLoading">
+      <div class="msg-label">StadiumSync AI</div>
+      <span style="color:var(--text2)">Thinking...</span>
+    </div>
+  `;
+
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await res.json();
+
+    document.getElementById('aiLoading').innerHTML =
+      `<div class="msg-label">StadiumSync AI</div>${data.reply}`;
+
+  } catch (err) {
+    document.getElementById('aiLoading').innerHTML =
+      `<div class="msg-label">StadiumSync AI</div>
+       <span style="color:red">Connection error ❌</span>`;
+  }
+
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function setupAIChat() {}
+function aiChip(el) {
+  document.getElementById('aiInput').value = el.textContent;
+  sendAI();
+}
+
+function renderTicket() {
+  const u = currentUser;
+  return `
+<div class="grid-2">
+  <div>
+    <div class="ticket-card mb-20">
+      <div class="flex items-center justify-between mb-16">
+        <div style="font-family:var(--font-display);font-size:22px;letter-spacing:2px;color:var(--accent)">STADIUMSYNC</div>
+        <div class="badge badge-green">VALID</div>
+      </div>
+      <div class="ticket-row">
+        <div><div class="ticket-field">Match</div><div class="ticket-val">Lions FC vs Eagles SC</div></div>
+      </div>
+      <div class="ticket-perf"></div>
+      <div class="ticket-row mb-16">
+        <div><div class="ticket-field">Gate</div><div class="ticket-val-big">C</div></div>
+        <div><div class="ticket-field">Block</div><div class="ticket-val-big">C</div></div>
+        <div><div class="ticket-field">Row</div><div class="ticket-val-big">12</div></div>
+        <div><div class="ticket-field">Seat</div><div class="ticket-val-big">07</div></div>
+      </div>
+      <div class="ticket-row">
+        <div><div class="ticket-field">Date</div><div class="ticket-val">Sat 10 Apr 2026</div></div>
+        <div><div class="ticket-field">Kickoff</div><div class="ticket-val">15:00</div></div>
+      </div>
+      <div class="ticket-perf"></div>
+      <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${u?.ticket || 'TKT-2024-88421'}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Ticket Details</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+        <div class="flex justify-between"><span class="text-muted">Holder</span><span>${u?.name}</span></div>
+        <div class="flex justify-between"><span class="text-muted">Type</span><span>General Admission</span></div>
+        <div class="flex justify-between"><span class="text-muted">Purchased</span><span>02 Apr 2026</span></div>
+        <div class="flex justify-between"><span class="text-muted">Venue</span><span>Lions Stadium, London</span></div>
+        <div class="flex justify-between"><span class="text-muted">Status</span><span class="text-green">✓ Checked In</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📱 QR Code</div>
+    <div class="qr-container">
+      <div class="qr-box">
+        <canvas id="qrCanvas" width="136" height="136"></canvas>
+      </div>
+      <div style="text-align:center">
+        <div class="text-sm font-mono text-accent">${u?.ticket || 'TKT-2024-88421'}</div>
+        <div class="text-xs text-muted mt-8">Scan at gate for entry</div>
+      </div>
+      <button class="btn-accent w-full" onclick="this.textContent='✓ Saved to Wallet'">Add to Wallet</button>
+      <button class="btn-sm w-full" onclick="this.textContent='✓ Shared!'">Share Ticket</button>
+    </div>
+  </div>
+</div>`;
+}
+
+function drawQR() {
+  const canvas = document.getElementById('qrCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const size = 136, cells = 17, cell = Math.floor(size/cells);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,size,size);
+  const qr = [];
+  for (let r=0;r<cells;r++) { qr[r]=[]; for (let c=0;c<cells;c++) qr[r][c]=Math.random()>.45; }
+  // Finder patterns
+  [[0,0],[0,cells-7],[cells-7,0]].forEach(([sr,sc]) => {
+    ctx.fillStyle='#000';
+    ctx.fillRect(sc*cell,sr*cell,7*cell,7*cell);
+    ctx.fillStyle='#fff';
+    ctx.fillRect((sc+1)*cell,(sr+1)*cell,5*cell,5*cell);
+    ctx.fillStyle='#000';
+    ctx.fillRect((sc+2)*cell,(sr+2)*cell,3*cell,3*cell);
+  });
+  ctx.fillStyle='#000';
+  for (let r=0;r<cells;r++) for (let c=0;c<cells;c++) {
+    const inFinder = (r<8&&c<8)||(r<8&&c>=cells-8)||(r>=cells-8&&c<8);
+    if (!inFinder && qr[r][c]) ctx.fillRect(c*cell,r*cell,cell-1,cell-1);
+  }
+}
+
+function renderGroup() {
+  return `
+<div class="card mb-20">
+  <div class="card-title">
+    <div class="card-title-left">👥 My Group — 4 Members</div>
+    <div class="flex gap-8">
+      <button class="btn-sm" onclick="this.textContent='✓ Link Copied!'">Share Group Link</button>
+      <button class="btn-sm">+ Invite</button>
+    </div>
+  </div>
+  <div class="friend-list">
+    <div class="friend-item" style="border-color:rgba(0,229,255,.2);background:rgba(0,229,255,.03)">
+      <div class="friend-avatar" style="background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff">${currentUser?.name[0]}</div>
+      <div class="friend-info">
+        <div class="friend-name">${currentUser?.name} (You)</div>
+        <div class="friend-loc">${currentUser?.seat}</div>
+      </div>
+      <div class="badge badge-blue">YOU</div>
+    </div>
+    ${GROUP_FRIENDS.map(f => `
+    <div class="friend-item">
+      <div class="friend-avatar" style="background:${f.color}20;color:${f.color}">${f.name[0]}</div>
+      <div class="friend-info">
+        <div class="friend-name">${f.name}</div>
+        <div class="friend-loc">📍 ${f.loc}</div>
+      </div>
+      <div class="flex items-center gap-8">
+        <div class="friend-status" style="background:${f.status==='online'?'var(--green)':'var(--yellow)'}"></div>
+        <button class="btn-sm" onclick="this.textContent='Pinged!'">Ping</button>
+      </div>
+    </div>`).join('')}
+  </div>
+</div>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">💬 Group Chat</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
+      <div style="padding:8px 12px;background:var(--bg2);border-radius:8px;font-size:13px"><span style="color:#7c3aed;font-weight:500">Sarah K.</span><br/>I'm at food stand 3! Anyone want anything? 🍔</div>
+      <div style="padding:8px 12px;background:var(--bg2);border-radius:8px;font-size:13px"><span style="color:#059669;font-weight:500">Mike T.</span><br/>Yes! Get me a burger please. Meeting you in 5.</div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.1);border-radius:8px;font-size:13px;align-self:flex-end"><span style="color:var(--accent);font-weight:500">You</span><br/>GOAAAAL!!! 2-1 can you believe it!!! 🎉⚽</div>
+    </div>
+    <div class="flex gap-8">
+      <input class="ai-input" style="flex:1" placeholder="Message group..." id="groupMsg"/>
+      <button class="btn-sm" onclick="sendGroupMsg()">Send</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📍 Meeting Point</div>
+    <div style="background:var(--bg2);border-radius:10px;padding:16px;text-align:center;margin-bottom:12px">
+      <div style="font-size:32px">🏟️</div>
+      <div class="text-sm mt-8">Suggested meeting point:</div>
+      <div style="font-size:16px;font-weight:600;color:var(--accent);margin-top:4px">Gate C — VIP Plaza</div>
+      <div class="text-xs text-muted mt-4">10% density — clear and easy to find</div>
+    </div>
+    <button class="btn-accent w-full" onclick="this.textContent='✓ Meeting Point Set!'">Set as Meeting Point</button>
+  </div>
+</div>`;
+}
+function sendGroupMsg() {
+  const input = document.getElementById('groupMsg');
+  if (input.value.trim()) { input.value=''; alert('Message sent to group!'); }
+}
+
+function renderSOS() {
+  return `
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title" style="color:var(--red)">🆘 Emergency SOS</div>
+    <div class="sos-panel">
+      <p class="text-sm text-muted mb-20">Press and hold for 3 seconds to send your location to stadium security and emergency services.</p>
+      <button class="sos-btn" id="sosBtn" onmousedown="startSOS()" onmouseup="cancelSOS()" ontouchstart="startSOS()" ontouchend="cancelSOS()">
+        <div>SOS</div>
+        <div class="sos-sub">Hold 3s</div>
+      </button>
+      <div id="sosStatus" style="margin-top:16px;font-size:13px;color:var(--text2);min-height:20px"></div>
+    </div>
+    <div class="sos-options">
+      <div class="sos-option" onclick="reportEmergency('Medical Emergency')">
+        <div class="sos-option-icon">🏥</div>
+        <div class="sos-option-label">Medical</div>
+      </div>
+      <div class="sos-option" onclick="reportEmergency('Security Incident')">
+        <div class="sos-option-icon">🛡️</div>
+        <div class="sos-option-label">Security</div>
+      </div>
+      <div class="sos-option" onclick="reportEmergency('Fire Alert')">
+        <div class="sos-option-icon">🔥</div>
+        <div class="sos-option-label">Fire</div>
+      </div>
+      <div class="sos-option" onclick="reportEmergency('Lost Person')">
+        <div class="sos-option-icon">🔍</div>
+        <div class="sos-option-label">Lost Person</div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="card mb-16">
+      <div class="card-title">📍 Your Location</div>
+      <div style="font-size:13px">
+        <div class="flex justify-between mb-8"><span class="text-muted">Seat</span><span>${currentUser?.seat}</span></div>
+        <div class="flex justify-between mb-8"><span class="text-muted">Zone</span><span>Block C — Lower Deck</span></div>
+        <div class="flex justify-between mb-8"><span class="text-muted">Nearest exit</span><span class="text-green">Gate C — 120m</span></div>
+        <div class="flex justify-between"><span class="text-muted">First Aid</span><span>Section C2 — 80m</span></div>
+      </div>
+    </div>
+    <div class="card mb-16">
+      <div class="card-title">🚨 Emergency Contacts</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+        <div class="flex justify-between items-center"><span>Stadium Security</span><button class="btn-sm" style="color:var(--green)">📞 Call</button></div>
+        <div class="flex justify-between items-center"><span>Medical Team</span><button class="btn-sm" style="color:var(--green)">📞 Call</button></div>
+        <div class="flex justify-between items-center"><span>Emergency Services</span><button class="btn-sm" style="color:var(--red)">📞 999</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚪 Nearest Exits</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+        <div class="flex justify-between"><span>Gate C</span><span class="text-green">120m — Clear</span></div>
+        <div class="flex justify-between"><span>Emergency Exit 3C</span><span class="text-green">60m — Always Open</span></div>
+        <div class="flex justify-between"><span>Gate A</span><span class="text-red">340m — Crowded</span></div>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+let sosTimer = null;
+function startSOS() {
+  document.getElementById('sosStatus').textContent = 'Hold for 3 seconds...';
+  sosTimer = setTimeout(() => {
+    const btn = document.getElementById('sosBtn');
+    btn.classList.add('active');
+    document.getElementById('sosStatus').innerHTML = '<span style="color:var(--red);font-weight:600">🚨 SOS SENT — Security alerted with your location!</span>';
+  }, 3000);
+}
+function cancelSOS() {
+  if (sosTimer) { clearTimeout(sosTimer); sosTimer=null; }
+  if (document.getElementById('sosStatus').textContent === 'Hold for 3 seconds...') {
+    document.getElementById('sosStatus').textContent = '';
+  }
+}
+async function reportEmergency(type) {
+  await fetch("http://localhost:5000/api/sos", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: currentUser.name,
+      location: currentUser.seat,
+      type: type
+    })
+  });
+
+  alert("🚨 Emergency sent!");
+}
+
+function renderAdmin() {
+  const pct = Math.round(ADMIN_STATS.attendance/ADMIN_STATS.capacity*100);
+  return `
+<div class="stat-grid mb-20">
+  <div class="stat-card">
+    <div class="stat-value text-accent">${ADMIN_STATS.attendance.toLocaleString()}</div>
+    <div class="stat-label">Total Attendance</div>
+    <div class="stat-change up">↑ ${pct}% capacity</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-green">${ADMIN_STATS.staff}</div>
+    <div class="stat-label">Staff On Duty</div>
+    <div class="stat-change up">All positions filled</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-red">${ADMIN_STATS.incidents}</div>
+    <div class="stat-label">Active Incidents</div>
+    <div class="stat-change down">1 requires action</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-yellow">12m</div>
+    <div class="stat-label">Avg Wait Time</div>
+    <div class="stat-change down">↑ +3 min trend</div>
+  </div>
+</div>
+
+<div class="grid-2 mb-20">
+  <div class="card">
+    <div class="card-title">📈 Attendance Over Time</div>
+    <div class="admin-chart">
+      <div class="chart-bars" id="adminChart"></div>
+    </div>
+    <div class="flex justify-between text-xs text-muted mt-8">
+      <span>12:00</span><span>13:00</span><span>14:00</span><span>15:00</span><span>16:00</span><span>17:00</span><span>NOW</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🎛️ Gate Controls</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${['Gate A — Main','Gate B — North','Gate C — VIP','Gate D — Staff'].map((g,i) => `
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm">${g}</div>
+          <div class="text-xs text-muted">${['Open','Closed','Open','Open'][i]}</div>
+        </div>
+        <div class="flex items-center gap-8">
+          <span class="badge ${['badge-green','badge-red','badge-green','badge-green'][i]}">${['Open','Closed','Open','Open'][i]}</span>
+          <div class="toggle ${i!==1?'on':''}" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">🚨 Active Incidents</div>
+    <table class="admin-table">
+      <thead><tr><th>Type</th><th>Location</th><th>Time</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Crowd Surge</td><td>Gate A</td><td>14 min</td><td><span class="badge badge-red">Critical</span></td></tr>
+        <tr><td>Gate Malfunction</td><td>Gate B</td><td>22 min</td><td><span class="badge badge-yellow">In Progress</span></td></tr>
+        <tr><td>Medical Request</td><td>Section B4</td><td>38 min</td><td><span class="badge badge-green">Resolved</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">📣 Broadcast Alert</div>
+    <div class="form-group">
+      <label class="form-label">Alert Type</label>
+      <select class="form-select">
+        <option>Information</option>
+        <option>Warning</option>
+        <option>Emergency</option>
+      </select>
+    </div>
+    <div class="form-group mt-12">
+      <label class="form-label">Message</label>
+      <textarea class="form-input" rows="3" style="resize:none;border-radius:10px" placeholder="Enter broadcast message..."></textarea>
+    </div>
+    <button class="btn-accent w-full mt-8" onclick="this.textContent='✓ Alert Sent to 42,680 attendees!'">Send Broadcast</button>
+  </div>
+</div>`;
+}
+
+function renderAdminChart() {
+  const chart = document.getElementById('adminChart');
+  if (!chart) return;
+  const vals = [8200, 15400, 24800, 33600, 39200, 41800, 42680];
+  const max = Math.max(...vals);
+  chart.innerHTML = vals.map((v,i) => `
+    <div class="chart-bar" data-val="${(v/1000).toFixed(1)}k"
+      style="height:${(v/max)*100}%;background:${i===vals.length-1?'var(--accent)':'rgba(0,229,255,0.3)'}"
+      title="${v.toLocaleString()} attendees"></div>`).join('');
+}
+
+// ==============================
+// LIVE UPDATES
+// ==============================
+let updateInterval = null;
+function startLiveUpdates() {
+  if (updateInterval) clearInterval(updateInterval);
+  updateInterval = setInterval(() => {
+    if (typeof WAIT_TIMES !== 'undefined') {
+      WAIT_TIMES.forEach(w => {
+        w.current = Math.max(1, Math.min(w.max, w.current + (Math.random()>.5?1:-1)));
+        w.crowd = Math.max(5, Math.min(98, w.crowd + Math.round((Math.random()-.5)*4)));
+        w.status = w.crowd>65?'high':w.crowd>35?'medium':'low';
+      });
+    }
+    for (let r=0;r<HEATMAP.length;r++) for (let c=0;c<HEATMAP[r].length;c++) {
+      HEATMAP[r][c] = Math.max(5, Math.min(98, HEATMAP[r][c] + Math.round((Math.random()-.5)*5)));
+    }
+    if (currentPage === 'heatmap' || currentPage === 'waittimes' || currentPage === 'dashboard') {
+      navigate(currentPage);
+    }
+  }, 8000);
+}
+
+// Init
+window.addEventListener('load', () => {
+  document.getElementById('authScreen').style.display = 'flex';
+});
+</script>
+</body>
+</html>
