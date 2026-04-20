@@ -383,7 +383,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 // ==============================
 // SAMPLE DATA
 // ==============================
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://stadiumsync-284841187356.asia-south1.run.app/api";
 async function fetchCrowdData() {
   const res = await fetch(API_BASE + "/crowd");
   const data = await res.json();
